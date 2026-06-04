@@ -1,0 +1,10 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "wtf")(type "Legacy")(uri "/home/firemark/kicad/libs/KiCadLibs/CustomComponents.lib")(options "")(descr ""))
+  (lib (name "expander")(type "Legacy")(uri "/home/firemark/kicad/libs/MCP23018-E-SP-ND.lib")(options "")(descr ""))
+  (lib (name "nixie")(type "Legacy")(uri "/home/firemark/kicad/libs/Eagle-and-KiCAD-Nixie-Libs/nixies-us.lib")(options "")(descr ""))
+  (lib (name "nixie2")(type "Legacy")(uri "/home/firemark/kicad/libs/Eagle-and-KiCAD-Nixie-Libs/mynixies.lib")(options "")(descr ""))
+  (lib (name "b13d")(type "Legacy")(uri "/home/firemark/kicad/libs/B13D.lib")(options "")(descr ""))
+  (lib (name "nixie-rescue")(type "KiCad")(uri "${KIPRJMOD}/nixie-rescue.kicad_sym")(options "")(descr ""))
+  (lib (name "logo")(type "KiCad")(uri "${KIPRJMOD}/warsztat_miejski_logo.kicad_sym")(options "")(descr ""))
+)
