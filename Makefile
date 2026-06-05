@@ -4,9 +4,9 @@
 # --
 
 MCU=attiny13
-FUSE_L=0x3B
+FUSE_L=0x39
 FUSE_H=0xFF
-F_CPU=128000
+F_CPU=4800000
 CC=avr-gcc
 LD=avr-ld
 OBJCOPY=avr-objcopy

@@ -28,14 +28,14 @@ AVR_MCU(F_CPU, "attiny13");
 #define IS_INT_PIN_HIGH (PINB & (1 << PB1))
 #define IS_MINUTE_BTN_HIGH (PINB & (1 << PB3))
 #define IS_HOUR_BTN_HIGH (PINB & (1 << PB4))
+#define SELECT_TIME_US 500
+
+static struct Time time;
 
 static void setup() {
   // Input pin B1 with pull-up
   PORTB = (1 << PB1) | (1 << PB3) | (1 << PB4) | i2c_port_setup();
   DDRB = i2c_ddr_setup();
-
-  GIMSK = (1 << INT0) | (1 << PCIE);  // Interrupts on.
-  PCMSK = (1 << PCINT3) | (1 << PCINT4);  // Interrupts on for PCINT.
 
   mcp23018_reset();
 
@@ -44,52 +44,48 @@ static void setup() {
   }
 }
 
-static void set_time_to_nixie(struct Time * time) {
-  mcp23018_set(time->hours, time->minutes);
+static void set_time_to_nixie() {
+  mcp23018_set(0xF0 | time.hours, 0xFF);
+  _delay_us(SELECT_TIME_US);
+  mcp23018_set(0x0F | time.hours, 0xFF);
+  _delay_us(SELECT_TIME_US);
+  mcp23018_set(0xFF, 0xF0 | time.minutes);
+  _delay_us(SELECT_TIME_US);
+  mcp23018_set(0xFF, 0x0F | time.minutes);
+  _delay_us(SELECT_TIME_US);
+  mcp23018_set(0xFF, 0xFF);
 }
 
-
-static uint8_t loop(struct Time * time) {
+static void loop() {
+  static uint8_t ticks = 0;
   if (!IS_INT_PIN_HIGH) {
     rtc_clear_alarm();
-    *time = rtc_get_time();
+    time = rtc_get_time();
   }
 
-  uint8_t try_again = 0;
   if (!IS_HOUR_BTN_HIGH) {
-    try_again = 1;
-    rtc_inc_hour(time);
-    rtc_set_time(time);
+    if (ticks++ > 100) {
+      rtc_inc_hour(&time);
+      rtc_set_time(&time);
+      ticks = 0;
+    }
   } else if (!IS_MINUTE_BTN_HIGH) {
-    try_again = 1;
-    rtc_inc_minute(time);
-    rtc_set_time(time);
-  } 
-
-  set_time_to_nixie(time);
-  return try_again;
+    if (ticks++ > 100) {
+      rtc_inc_minute(&time);
+      rtc_set_time(&time);
+      ticks = 0;
+    }
+  } else {
+    ticks = 0;
+  }
 }
-
-EMPTY_INTERRUPT(INT0_vect);
-EMPTY_INTERRUPT(PCINT0_vect);
 
 int main() {
   setup();
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-  sleep_enable();
-
-  struct Time time = rtc_get_time();
-  set_time_to_nixie(&time);
-
+  time = rtc_get_time();
   for (;;) {
-    cli();
-    while (loop(&time)) {
-      _delay_ms(250);
-    }
-    sei();
-    if (IS_INT_PIN_HIGH) {
-      sleep_cpu();
-    }
+    loop();
+    set_time_to_nixie();
   }
   return 0;
 }
